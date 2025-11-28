@@ -1,0 +1,155 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>README</TITLE>
+
+
+</HEAD>
+<BODY>
+<H1>README</H1>
+
+<H2>Aaditya Sood, <CODE>aaditya@users.sourceforge.net</CODE></H2>v1.0, 28 December 2000
+<P><HR>
+<EM>README file for emulator85</EM>
+<HR>
+<H2><A NAME="s1">1. Contents</A></H2>
+
+<P>
+<OL>
+<LI> 
+<A HREF="#intro">Introduction</A></LI>
+<LI> 
+<A HREF="#devenv">Developer's Enviorment</A></LI>
+<LI> 
+<A HREF="#working">Working</A></LI>
+<LI> 
+<A HREF="#switch">Switches/Options</A></LI>
+<LI> 
+<A HREF="#unixexample">UNIX Example</A></LI>
+<LI> 
+<A HREF="#dosexample">Win/DOS Example</A></LI>
+<LI> 
+<A HREF="#problems">Problems...</A></LI>
+<LI> 
+<A HREF="#details">Details</A></LI>
+<LI> 
+<A HREF="#build">Build Instructions</A></LI>
+<LI> 
+<A HREF="#todo">Todo</A></LI>
+<LI> 
+<A HREF="#credits">Credits/Thanks</A></LI>
+<LI> 
+<A HREF="#copying">Copying</A></LI>
+<LI> 
+<A HREF="#maintainers">Maintainers</A></LI>
+<LI> 
+<A HREF="#author">Author Info</A></LI>
+</OL>
+<H2><A NAME="intro"></A> 1.1 Introduction</H2>
+
+e85 is a byte level emulator for the 8085 microprocessor. It reads in the standard opcodes in hexadecimal and executes them. It is written in C and uses python to generate a lot of C code. See 
+<A HREF="FAQ.html">FAQ </A>file for more information.
+<H2><A NAME="devenv"></A> 1.2 Developer's Enviorment</H2>
+
+I developed e85 on a Red Hat Linux 7.0 system using GNU tools (mainly gcc). The emulator by design uses only ANSI C so that it may be compiled anywhere. I have sucessfully compiled it under Visual C++ and to some extent gcc under Solaris (see 
+<A HREF="#problems">Problems</A>). I expect it to pretty much compile anywhere but if you have any problems mail me and i'll try my best.
+<H2><A NAME="working"></A> 1.3 Working</H2>
+
+I <B>STRONGLY</B>suggest you go through the file 
+<A HREF="FAQ.html">FAQ </A>before reading this file. The program expects to read the opcodes from the standard input in hexadecimal text. It internally converts input to appropriate byte representations. Total memory space is 0x8000 bytes with user program (by convention) starting at location 0x4100 and ending at location 0x6000. After the code is read in, it is executed and results displayed. In case of any error, an error message is displayed and the program exits. Normally the register values are displayed only at end of execution but using verbose output option (-v) register values can be displayed verbosely. 
+<H2><A NAME="switch"></A> 1.4 Switches</H2>
+
+<UL>
+<LI><CODE><B> -v</B></CODE> : show all registers after each opcode execution.</LI>
+<LI><CODE><B> -f file</B></CODE> : use file to read opcodes instead of standard input.</LI>
+<LI><CODE><B> -d</B></CODE> : displays a lot of information about various internal structure initialization.</LI>
+<LI><CODE><B> -V</B></CODE> : display copyright and version information</LI>
+<LI><B><CODE> -h</CODE></B> : display help and exit</LI>
+</UL>
+<H2>1.5 Example</H2>
+
+<A NAME="unixexample"></A> To execute INR A, JMP 4105 under UNIX 
+<BLOCKQUOTE><CODE>
+<PRE>
+$ echo "3c c3 05 41"|./e85                      
+</PRE>
+</CODE></BLOCKQUOTE>
+<A NAME="dosexample"></A> Under MS-DOS/Windows (see 
+<A HREF="#problems">Problems</A>)
+<BLOCKQUOTE><CODE>
+<PRE>
+C&gt; e85 -f progfile     #progfile should contain the opcodes.   
+</PRE>
+</CODE></BLOCKQUOTE>
+<H2><A NAME="problems"></A> 1.6 Problems</H2>
+
+<UL>
+<LI> some code in doops.c assumes that char is 8 bit and int 16 bit. It constructs 16 bit quantities using <CODE>&lt;&lt;8</CODE> from two 8 bit quantities. Unportable.</LI>
+<LI> the program reads from standard input. Thus on DOS platform whenever an opcode of 1A (ldax D) is sent it is read as an EOF and input terminates. We also cannot open the stdin in binary mode since it is already open. FIX: use a <CODE><B>-f</B></CODE> option to read in from a file, otherwise from <CODE><B> stdin</B></CODE> .</LI>
+<LI> I have not been able to cleanly compile e85 under Solaris using gcc. I get errors in <CODE>va_args</CODE> in <CODE>eprintf.c</CODE>. So there is a define in makefile named SOL_DEFINES. Set it to <B>__SOLARIS__</B> and compile (remember to remove the <B>__LINUX__</B> define too). Everything else compiled cleanly. I think this is a problem with my gcc installation and everyone else should be able to make e85 easily. I'm working on it though.</LI>
+</UL>
+<H2><A NAME="details"></A> 1.7 Details</H2>
+
+The program is divided into several parts:
+<UL>
+<LI><CODE><B> emul.c</B></CODE>: the main module. Initializes stuff, reads in the data, executes it, de-initializes stuff and exits. It has a <CODE><B> task85</B></CODE>  struct which contains full context for one 8085 processor. This way we can have more than one processor at the same time and switch between them or even have SMP(pretty far-fetched). Various functions are:
+<UL>
+<LI><CODE><B>inittask()</B></CODE> : sets up memory for a task. sets all registers to zero and all the opcode handles to <CODE>def_handle()</CODE> by default.</LI>
+<LI><CODE><B>buildtask()</B></CODE>: reads in the data. calls <CODE>buildhandle()</CODE>.</LI>
+<LI> <CODE><B>buildhandle()</B></CODE>: sets the tasks' opcode handlers to point to correct opcode handlers. All the code here is generated by a python script(<CODE><B>gencode.py</B></CODE>) and shouldn't be really edited by hand, the script should be changed instead.</LI>
+<LI><CODE><B>runtask()</B></CODE>: runs the task by calling the appropriate handler for each opcode. Stops when a null opcode is found ("<CODE>nop</CODE>" instruction).</LI>
+<LI><CODE><B>printhandle()</B></CODE>: print all the opcode handler's address for a task</LI>
+<LI><CODE><B>printtask()</B></CODE>: prints all the registers for a task.</LI>
+<LI><CODE><B>def_handle()</B></CODE>: prints a message for a unsupported opcode. Prevents core dumps <CODE>;-)</CODE></LI>
+</UL>
+
+</LI>
+<LI><CODE><B>doops.c</B></CODE>: actually contains the bare bones code for all the opcodes handlers. it knows nothing about tasks and such but just uses the passed pointers. Thus we implement all MOVs as one generic <CODE>doMOV()</CODE> that takes two pointers and moves one to the other. This allows us to write less code which is easy to maintain and each handler only gets written once. All opcodes are handled this way except some specialized ones. 
+   </LI>
+<LI><CODE><B>opmap.c</B></CODE>: contains the code that maps the various combinations of MOVs etc to generic functions in <CODE>doops.c</CODE>. I think this is one the most important part of the emulator, it took a long time to get this implementation right. It is generated by python script <CODE>gencode.py</CODE>. 
+</LI>
+<LI><CODE><B>gencode.py</B></CODE>: the python script that generates the <CODE>buildhandle()</CODE> and <CODE>opmap.c</CODE> code. Really the most significant piece of the emulator. Here is where most of my hard work lies. If new opcodes are to be added they are added here and corresponding generic functions written in <CODE>doops.c</CODE>. Just rerun <CODE>gencode.py</CODE> with -d for declarations for <CODE>handleop.c</CODE> and with -c for code for <CODE>opmap.c</CODE>.
+</LI>
+<LI><CODE><B>opfuncdecl.h</B></CODE>: contains all the declarations for <CODE>doops.c</CODE> generated automatically by cproto. But first needs to be passed through C preprocessor as <CODE>cproto</CODE> balks on typedefs and defines.
+</LI>
+<LI><CODE><B>instrtable.c</B></CODE>: contains the ophandler pointer and name of each opcode as an array of struct <CODE>instr85</CODE>. Fill this in after you write a ophandler.</LI>
+<LI><CODE><B>top.h</B></CODE>: at the top! contains all the <CODE>task85</CODE> struct definitions, compile time constants for user start and end location, task memory size and some useful defines. Really should be #included everywhere.
+</LI>
+<LI><CODE><B>eprintf.c</B></CODE>: This and friends are from k&amp;p tpop(`the practice of programming'). It is quite useful and i'm grateful to the authors. Allows to print errors and warnings in printf format, making life easier.</LI>
+</UL>
+<H2><A NAME="build"></A> 1.8 Build Instructions</H2>
+
+There is a standard makefile included. Just make sure everything is in one directory. If you're on ganga enable the define <B>__SOLARIS__</B>in the makefile  and disable <B>__LINUX__</B>define. Change CC &amp; CFLAGS in makefile for your compiler and type make. It should build cleanly. If not, try to figure out what went wrong and mail me the fix (ok you could also contact me ;).
+<H2><A NAME="todo"></A> 1.9 Todo</H2>
+
+<UL>
+<LI>a assembler for 8085 assembly language. I'm working on it right now in python and could be done soon. If you want to write one too, by all means do so - just contact me so if I like your idea we both can work on it (pending permission from you, ofcourse :-).</LI>
+<LI>a graphical front end in python or tcl/tk (or any other scripting language). I'll try to do this after i hack tkinter.</LI>
+<LI>allow to change user code start and end locations at run time rather than at compile time.</LI>
+<LI>allow for single stepping and debugging. Going to take one major rehash for the user interface code (do use readline library).</LI>
+<LI>if you have the time/inclination the opcodes can be executed as threaded jumps to opcode handlers rather than through a table look up. ie we will semi-compile the opcodes and store the handler's address in sequential order to directly jump to it and execute. Will be FAST.</LI>
+</UL>
+<H2><A NAME="credits"></A> 1.10 Credits / Thanks</H2>
+
+<UL>
+<LI>All the people who made GNU/Linux such a wonderful environment.</LI>
+<LI>Arun Suresh for giving me the idea that this project is possible.</LI>
+<LI>Manish Verma for being the first user.</LI>
+<LI>Subin Philip for taking an active interest.</LI>
+</UL>
+<H2><A NAME="copying"></A> 1.11 Copying</H2>
+
+See the file 
+<A HREF="http://cnn/~aaditya/COPYING">COPYING </A>included with this package.
+<H2><A NAME="maintainers"></A> 1.12 Maintainers</H2>
+
+aaditya sood
+<H2><A NAME="author"></A> 1.13 Author Info</H2>
+
+aaditya sood: I'm doing my b.tech. in electronics and communications engg. at REC Calicut, Kerala, India.
+You can reach me at <B>
+<A HREF="mailto:aaditya@users.sourceforge.net">aaditya@users.sourceforge.net </A></B>or <B>
+<A HREF="mailto:soodaaditya@yahoo.co.in">soodaaditya@yahoo.co.in</A></B>. 
+</BODY>
+</HTML>

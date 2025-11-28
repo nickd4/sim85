@@ -1,0 +1,163 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">
+<HTML>
+<HEAD>
+ <META NAME="GENERATOR" CONTENT="SGML-Tools 1.0.9">
+ <TITLE>Emulator FAQ</TITLE>
+
+
+</HEAD>
+<BODY>
+<H1>Emulator FAQ</H1>
+
+<H2>Aaditya Sood, <CODE>aaditya@users.sourceforge.net</CODE></H2> v1.2, Fri Feb  9 08:24:22 IST 2001
+<P><HR>
+<EM>Frequently Asked Questions for emulator85</EM>
+<HR>
+<H2><A NAME="s1">1. Contents</A></H2>
+
+<P>
+<OL>
+<LI> 
+<A HREF="#contrib">How can you help</A>?</LI>
+<LI> 
+<A HREF="#ques-1">How do I install and use this emulator system</A>?</LI>
+<LI> 
+<A HREF="#ques-2">What the hell is this echo business</A>?</LI>
+<LI> 
+<A HREF="#ques-3">What are the other ways to give input</A>?</LI>
+<LI> 
+<A HREF="#ques-4">What instructions are supported</A>?</LI>
+<LI> 
+<A HREF="#ques-5">To what extent interrupts are supported</A>?</LI>
+<LI> 
+<A HREF="#ques-6">How do I see detailed instruction processing step-by-step execution</A>?</LI>
+<LI> 
+<A HREF="#ques-7">How do I port this thing to work on Turbo C</A>?</LI>
+<LI> 
+<A HREF="#ques-8">What level of support do you provide for this</A>?</LI>
+<LI> 
+<A HREF="#ques-9">Whats wrong with your program</A>!</LI>
+<LI> 
+<A HREF="#ques-10">How do I contact you</A>?</LI>
+<LI> 
+<A HREF="#ques-11">Where can I find an updated version of emulator85</A>?</LI>
+</OL>
+<H2>1.1 Your Contribution</H2>
+
+<P>
+<A NAME="contrib"></A> How can I contribute?
+<P>This is a huge project. So I (or someone, I suppose) can not do it all alone. Thereby I request your assistance. If you feel you can write C code to emulate even one instruction, it is a big contribution. If you can not or don't want to write C code, you can help by using and testing the program and reporting any problems. Or you could write quality documentation. Please understand that these are not a necessary condition to use this program, you can use this program even if you do not contribute. But why not return a little to the wider user community? That way everyone benefits. So please consider doing something.
+<P>This is a shared project. I did not do it in isolation, many people gave suggestions (&amp; criticism). So feel free to modify &amp; use anyway you like. Since this is a GPL'd project( see 
+<A HREF="http://cnn/~aaditya/COPYING">Copying</A>) you can modify and use it to your hearts' desire. I just retain the copyright which means that you have to give credit to me if you modify the program (nothing but an ego-booster for me, be assured;-). Nothing else.
+<P>Also I'd like to hear (mail) from you if you do use the emulator. Just tell me how're you using it, how do you find it and any suggestions for improvements/criticism. I would be thankful:-)
+<P>
+<H2>1.2 Answers</H2>
+
+<P>Q 1.
+<A NAME="ques-1"></A> How do I install and use this `emulator' system?
+<P>A: You have to go the cnn server and download it from there. It is available at 
+<A HREF="http://cnn/~aaditya/emulator.html">http://cnn/~aaditya/emulator.html</A>.It's accessed through lynx or netscape, so all people who have a login on ganga and other servers can get it. The  file is stored as a compressed tar ball to save disk space and make YOUR life easier too ( think about having to download 18 separate files). Instead you download this file, uncompress it and then untar it. First of all do this
+<BLOCKQUOTE><CODE>
+<PRE>
+$ lynx http://cnn/~aaditya/emulator.html
+</PRE>
+</CODE></BLOCKQUOTE>
+
+On this page you can find a link which says <B>emulator85.0.80.src.tar.gz</B>. Click on that link and select `Download' next. Then choose a directory where to store the file. Now choose `Save as file'. When the file is saved, exit lynx and go to the directory where it was stored. Now assuming the file name is <B>emulator85.0.80.src.tar.gz</B> (it could be different) do
+<BLOCKQUOTE><CODE>
+<PRE>
+$ gunzip emulator85.0.80.src.tar.gz
+</PRE>
+</CODE></BLOCKQUOTE>
+
+This will create a file named <B>emul85.0.80.src.tar</B> in the current directory. This is all the files contained in one big file. Now to get all the files out do
+<BLOCKQUOTE><CODE>
+<PRE>
+$ tar xvf emulator85.0.80.src.tar
+</PRE>
+</CODE></BLOCKQUOTE>
+
+This will create a directory named <B>emulator85.0.80</B>. Change to that dir and type `<B>make</B>'. You should get a long list of Warnings and nothing. If there isn't a file named `<B>e85</B>' in the directory, you're in trouble. Something went wrong somewhere, and we both don't know where. If you can figure it out, fix it and send the fix to me too. Otherwise mail me and I'll have a look. 
+Assuming all went well now you can begin using the emulator. Like all standard <B>UNIX</B> programs the emulator also reads the opcodes from its standard input and writes to its standard output. Additionaly the errors are sent to the standard error. Thus you can use filters like grep or sort(I don't know why one would want to do that one). So if you just run e85, it will wait for you to type your opcode followed by enter and keep on doing the same until you press Control-D (which means EOF). Then it executes the opcodes and displays the results. So you can also use echo to give the opcodes. Or you can store them on a file and redirect that to standard input. The -f option takes the filename as an argument and reads data from that file.
+<P><B>A sample session showing different ways to input data - PAY ATTENTION!!!</B>
+<P>
+<BLOCKQUOTE><CODE>
+<PRE>
+$ e85 
+3c
+3c
+3c
+&lt;press Control-D>
+PC:4103 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+$ echo "3c 3c 3c"|e85 
+PC:4104 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+$ e85 &lt; data                   #assuming data is a file containing 3c 3c 3c  
+PC:4104 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+$ e85 -f data 
+PC:4103 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+</PRE>
+</CODE></BLOCKQUOTE>
+
+Thus all approaches give the same final answer (A=3).
+Also see 
+<A HREF="#ques-6">Q 6</A><P><P>Q 2.
+<A NAME="ques-2"></A>  What the hell is this echo " " business?
+<P>A: Read 
+<A HREF="#ques-1">Q 1</A> to get the idea.
+<P><P>Q.3 
+<A NAME="ques-3"></A> What are the other ways to give input?
+<P>A: Please see 
+<A HREF="#ques-1">Q 1</A><P><P>Q 4
+<A NAME="ques-4"></A>  What instructions are supported?
+<P>A: I would rather not list the instructions here as the list will get outdated very soon. Rather look in the file <CODE>doops.c</CODE>. All the instructions mentioned there are currently supported. Please note at the time of writing emulator is version 0.80 and is thus beta software. Our goal is to support ALL instructions by version 1.0. This is possible only by your support and help. So if you find any bugs or write code to emulate any unsupported instruction, kindly mail the code to me. Others (and I) will also benefit from your work. And your name will be mentioned in the CREDITS list. Please see "
+<A HREF="#contrib">How can I help</A>".
+<P><P>Q 5
+<A NAME="ques-5"></A> To what extent interrupts are supported?
+<P>A: Interrupts are right now totally unsupported but if you're willing to write code to support them see "
+<A HREF="#contrib">How can I help</A>".
+<P><P>Q 6
+<A NAME="ques-6"></A>  How do I see detailed instruction processing (step-by-step execution)?
+<P>A: If you use the <CODE>-v</CODE> option on the command line the emulator will show all the registers after each byte execution.Also see 
+<A HREF="#ques-1">Q 1</A>
+<BLOCKQUOTE><CODE>
+<PRE>
+$ e85 -v -f data 
+PC:4100 SP:0  A:0 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:3C inr A
+PC:4101 SP:0  A:1 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:3C inr A
+PC:4102 SP:0  A:2 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:3C inr A
+PC:4103 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+</PRE>
+</CODE></BLOCKQUOTE>
+<P><P>Q 7
+<A NAME="ques-7"></A>  How do I port this thing to work on Turbo C?
+<P>A: A lot of people use Turbo C (I started C using it, before I discovered GNU/Linux :). I don't have Turbo C with me so this is not very precise. You will have to make a project file and include all the files as shown in the makefile. Then build the project. You should get a executable. There could be subtle problems involving memory models and small/large/huge pointers. Give it a try and mail me the results.
+<P><P>Q 8
+<A NAME="ques-8"></A>  What level of support do you provide for this?
+<P>A: I am basically ready to answer all your queries, incorporate all the bug fixes you send me and work on this thing. However if you're not satisfied with the level of support I'm providing you can get a refund of all the money you paid me for this <CODE>;-)</CODE>. (get it? This is voluntary - I'm under no obligation to help you though I'll try my best - hey if you think I suck you can take over)
+<P><P>Q 9
+<A NAME="ques-9"></A>  What's wrong with your program!
+<P>A: A lot of things<CODE>:-)</CODE>
+<UL>
+<LI>A command line interface (some hate it - I love it)</LI>
+<LI>No real ability to single step through it.</LI>
+<LI>Number of instructions emulated.</LI>
+<LI>The complex structure of the program sources (look at the goddamn makefile!).</LI>
+</UL>
+<P><P>Q 10
+<A NAME="ques-10"></A> . How do I contact you?
+<P>A: Or you can mail me at 
+<A HREF="mailto:aaditya@users.sourceforge.net">aaditya@users.sourceforge.net</A> or at 
+<A HREF="mailto:soodaaditya@yahoo.co.in">soodaaditya@yahoo.co.in</A> (I don't check this daily, web access being what it is in our college<B><CODE>:-&lt;</CODE>. </B>
+If you are on the CREC campus you can meet me<CODE>:-)</CODE>
+<P><P>Q 11
+<A NAME="ques-11"></A> . Where can I find an updated version of emulator85?
+<P>A: The same place you found the original thing :
+<P><B>
+<A HREF="http://cnn/~aaditya/emulator.html">http://cnn/~aaditya/emulator.html</A></B> ( and hey, on your way there check out my webpage too :)
+</BODY>
+</HTML>

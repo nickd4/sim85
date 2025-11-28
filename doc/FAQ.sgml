@@ -1,0 +1,133 @@
+<!doctype linuxdoc system>
+<article>
+<title>Emulator FAQ
+<author>Aaditya Sood, <tt/aaditya@users.sourceforge.net/
+<date> v1.2, Fri Feb  9 08:24:22 IST 2001
+<abstract>
+Frequently Asked Questions for emulator85
+</abstract>
+<sect>Contents
+
+<enum>
+<item> <ref id="contrib" name="How can you help">?
+<item> <ref id="ques-1" name="How do I install and use this emulator system">?
+<item> <ref id="ques-2" name="What the hell is this echo business">?
+<item> <ref id="ques-3" name="What are the other ways to give input">?
+<item> <ref id="ques-4" name="What instructions are supported">?
+<item> <ref id="ques-5" name="To what extent interrupts are supported">?
+<item> <ref id="ques-6" name="How do I see detailed instruction processing step-by-step execution">?
+<item> <ref id="ques-7" name="How do I port this thing to work on Turbo C">?
+<item> <ref id="ques-8" name="What level of support do you provide for this">?
+<item> <ref id="ques-9" name="Whats wrong with your program">!
+<item> <ref id="ques-10" name="How do I contact you">?
+<item> <ref id="ques-11" name="Where can I find an updated version of emulator85">?
+</enum>
+<sect1>Your Contribution</sect1>
+<p><label id="contrib">How can I contribute?
+
+This is a huge project. So I (or someone, I suppose) can not do it all alone. Thereby I request your assistance. If you feel you can write C code to emulate even one instruction, it is a big contribution. If you can not or don't want to write C code, you can help by using and testing the program and reporting any problems. Or you could write quality documentation. Please understand that these are not a necessary condition to use this program, you can use this program even if you do not contribute. But why not return a little to the wider user community? That way everyone benefits. So please consider doing something.
+<p>
+This is a shared project. I did not do it in isolation, many people gave suggestions (& criticism). So feel free to modify & use anyway you like. Since this is a GPL'd project( see <htmlurl url="http://cnn/~aaditya/COPYING" name="Copying">) you can modify and use it to your hearts' desire. I just retain the copyright which means that you have to give credit to me if you modify the program (nothing but an ego-booster for me, be assured;-). Nothing else.
+<p>
+Also I'd like to hear (mail) from you if you do use the emulator. Just tell me how're you using it, how do you find it and any suggestions for improvements/criticism. I would be thankful:-)
+
+<sect1>Answers</sect1>
+<p>Q 1.<label id="ques-1">How do I install and use this `emulator' system?
+
+A: You have to go the cnn server and download it from there. It is available at <url url="http://cnn/~aaditya/emulator.html">.It's accessed through lynx or netscape, so all people who have a login on ganga and other servers can get it. The  file is stored as a compressed tar ball to save disk space and make YOUR life easier too ( think about having to download 18 separate files). Instead you download this file, uncompress it and then untar it. First of all do this
+<tscreen><verb>
+$ lynx http://cnn/~aaditya/emulator.html
+</verb></tscreen>
+On this page you can find a link which says <bf>emulator85.0.80.src.tar.gz</bf>. Click on that link and select `Download' next. Then choose a directory where to store the file. Now choose `Save as file'. When the file is saved, exit lynx and go to the directory where it was stored. Now assuming the file name is <bf>emulator85.0.80.src.tar.gz</bf> (it could be different) do
+<tscreen><verb>
+$ gunzip emulator85.0.80.src.tar.gz
+</verb></tscreen>
+This will create a file named <bf>emul85.0.80.src.tar</bf> in the current directory. This is all the files contained in one big file. Now to get all the files out do
+<tscreen><verb>
+$ tar xvf emulator85.0.80.src.tar
+</verb></tscreen>
+This will create a directory named <bf>emulator85.0.80</bf>. Change to that dir and type `<bf>make</bf>'. You should get a long list of Warnings and nothing. If there isn't a file named `<bf>e85</bf>' in the directory, you're in trouble. Something went wrong somewhere, and we both don't know where. If you can figure it out, fix it and send the fix to me too. Otherwise mail me and I'll have a look. 
+Assuming all went well now you can begin using the emulator. Like all standard <bf>UNIX</bf> programs the emulator also reads the opcodes from its standard input and writes to its standard output. Additionaly the errors are sent to the standard error. Thus you can use filters like grep or sort(I don't know why one would want to do that one). So if you just run e85, it will wait for you to type your opcode followed by enter and keep on doing the same until you press Control-D (which means EOF). Then it executes the opcodes and displays the results. So you can also use echo to give the opcodes. Or you can store them on a file and redirect that to standard input. The -f option takes the filename as an argument and reads data from that file.
+
+<bf>A sample session showing different ways to input data - PAY ATTENTION!!!</bf>
+
+<tscreen><verb>
+$ e85 
+3c
+3c
+3c
+<press Control-D>
+PC:4103 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+$ echo "3c 3c 3c"|e85 
+PC:4104 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+$ e85 < data                   #assuming data is a file containing 3c 3c 3c	
+PC:4104 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+$ e85 -f data 
+PC:4103 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+</verb></tscreen>
+Thus all approaches give the same final answer (A=3).
+Also see <ref id="ques-6" name="Q 6">
+
+<p>Q 2.<label id="ques-2"> What the hell is this echo " " business?
+
+A: Read <ref id="ques-1" name="Q 1"> to get the idea.
+
+<p>Q.3 <label id="ques-3">What are the other ways to give input?
+
+A: Please see <ref id="ques-1" name="Q 1">
+
+<p>Q 4<label id="ques-4"> What instructions are supported?
+
+A: I would rather not list the instructions here as the list will get outdated very soon. Rather look in the file <tt/doops.c/. All the instructions mentioned there are currently supported. Please note at the time of writing emulator is version 0.80 and is thus beta software. Our goal is to support ALL instructions by version 1.0. This is possible only by your support and help. So if you find any bugs or write code to emulate any unsupported instruction, kindly mail the code to me. Others (and I) will also benefit from your work. And your name will be mentioned in the CREDITS list. Please see "<ref id="contrib" name="How can I help">".
+
+<p>Q 5<label id="ques-5">To what extent interrupts are supported?
+
+A: Interrupts are right now totally unsupported but if you're willing to write code to support them see "<ref id="contrib" name="How can I help">".
+
+<p>Q 6<label id="ques-6"> How do I see detailed instruction processing (step-by-step execution)?
+
+A: If you use the <tt/-v/ option on the command line the emulator will show all the registers after each byte execution.<br>
+Also see <ref id="ques-1" name="Q 1">
+<tscreen><verb>
+$ e85 -v -f data 
+PC:4100 SP:0  A:0 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:3C inr A
+PC:4101 SP:0  A:1 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:3C inr A
+PC:4102 SP:0  A:2 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:3C inr A
+PC:4103 SP:0  A:3 B:0 C:0 D:0 E:0 H:0 L:0 M:0  CF:0 ZF:0 PF:0  op:00 nop
+$
+</verb></tscreen>
+
+<p>Q 7<label id="ques-7"> How do I port this thing to work on Turbo C?
+
+A: A lot of people use Turbo C (I started C using it, before I discovered GNU/Linux :). I don't have Turbo C with me so this is not very precise. You will have to make a project file and include all the files as shown in the makefile. Then build the project. You should get a executable. There could be subtle problems involving memory models and small/large/huge pointers. Give it a try and mail me the results.
+
+<p>Q 8<label id="ques-8"> What level of support do you provide for this?
+
+A: I am basically ready to answer all your queries, incorporate all the bug fixes you send me and work on this thing. However if you're not satisfied with the level of support I'm providing you can get a refund of all the money you paid me for this <tt/;-)/. (get it? This is voluntary - I'm under no obligation to help you though I'll try my best - hey if you think I suck you can take over)
+
+<p>Q 9<label id="ques-9"> What's wrong with your program!
+
+A: A lot of things<tt/:-)/<itemize>
+        <item>A command line interface (some hate it - I love it)
+        <item>No real ability to single step through it.
+        <item>Number of instructions emulated.
+        <item>The complex structure of the program sources (look at the goddamn makefile!).
+    </itemize>
+
+<p>Q 10<label id="ques-10">. How do I contact you?
+
+A: Or you can mail me at <htmlurl url="mailto:aaditya@users.sourceforge.net" name="aaditya@users.sourceforge.net"> or at <htmlurl url="mailto:soodaaditya@yahoo.co.in" name="soodaaditya@yahoo.co.in"> (I don't check this daily, web access being what it is in our college<bf><tt/:-</. </bf>
+If you are on the CREC campus you can meet me<tt/:-)/
+
+<p>Q 11<label id="ques-11">. Where can I find an updated version of emulator85?
+
+A: The same place you found the original thing :
+ 
+<bf><url url="http://cnn/~aaditya/emulator.html"></bf> ( and hey, on your way there check out my webpage too :)
+</article>
+
+

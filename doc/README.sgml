@@ -1,0 +1,116 @@
+<!doctype linuxdoc system>
+<article>
+<title>README
+<author>Aaditya Sood, <tt/aaditya@users.sourceforge.net/
+<date>v1.0, 28 December 2000
+<abstract>
+README file for emulator85
+</abstract>
+<sect>Contents
+<enum>
+<item> <ref id="intro" name="Introduction">
+<item> <ref id="devenv" name="Developer's Enviorment">
+<item> <ref id="working" name="Working">
+<item> <ref id="switch" name="Switches/Options">
+<item> <ref id="unixexample" name="UNIX Example">
+<item> <ref id="dosexample" name="Win/DOS Example">
+<item> <ref id="problems" name="Problems...">
+<item> <ref id="details" name="Details">
+<item> <ref id="build" name="Build Instructions">
+<item> <ref id="todo" name="Todo">
+<item> <ref id="credits" name="Credits/Thanks">
+<item> <ref id="copying" name="Copying">
+<item> <ref id="maintainers" name="Maintainers">
+<item> <ref id="author" name="Author Info">
+</enum>
+<sect1>Introduction<label id="intro"></sect1>
+e85 is a byte level emulator for the 8085 microprocessor. It reads in the standard opcodes in hexadecimal and executes them. It is written in C and uses python to generate a lot of C code. See <htmlurl url="FAQ.html" name="FAQ "> file for more information.
+
+<sect1>Developer's Enviorment<label id="devenv"></sect1>
+I developed e85 on a Red Hat Linux 7.0 system using GNU tools (mainly gcc). The emulator by design uses only ANSI C so that it may be compiled anywhere. I have sucessfully compiled it under Visual C++ and to some extent gcc under Solaris (see <ref id id="problems" name="Problems">). I expect it to pretty much compile anywhere but if you have any problems mail me and i'll try my best.
+
+<sect1>Working<label id="working"></sect1>
+I <bf>STRONGLY</bf>  suggest you go through the file <htmlurl url="FAQ.html" name="FAQ "> before reading this file. The program expects to read the opcodes from the standard input in hexadecimal text. It internally converts input to appropriate byte representations. Total memory space is 0x8000 bytes with user program (by convention) starting at location 0x4100 and ending at location 0x6000. After the code is read in, it is executed and results displayed. In case of any error, an error message is displayed and the program exits. Normally the register values are displayed only at end of execution but using verbose output option (-v) register values can be displayed verbosely. 
+<sect1>Switches<label id="switch"></sect1>
+<itemize>
+<item><tt><bf> -v</bf></tt> : show all registers after each opcode execution.
+<item><tt><bf> -f file</bf></tt> : use file to read opcodes instead of standard input.
+<item><tt><bf> -d</bf></tt> : displays a lot of information about various internal structure initialization.
+<item><tt><bf> -V</bf></tt> : display copyright and version information
+<item><bf><tt> -h</bf></tt> : display help and exit
+</itemize>
+
+<sect1>Example</sect1>
+<label id="unixexample">To execute INR A, JMP 4105 under UNIX 
+<tscreen><verb>
+$ echo "3c c3 05 41"|./e85                      
+</verb></tscreen>
+<label id="dosexample">Under MS-DOS/Windows (see <ref id="problems" name="Problems">)
+<tscreen><verb>
+C&gt; e85 -f progfile     #progfile should contain the opcodes.   
+</verb></tscreen>
+<sect1>Problems<label id="problems"></sect1>
+<itemize>
+<item> some code in doops.c assumes that char is 8 bit and int 16 bit. It constructs 16 bit quantities using <tt>&lt;&lt;8</tt> from two 8 bit quantities. Unportable.
+<item> the program reads from standard input. Thus on DOS platform whenever an opcode of 1A (ldax D) is sent it is read as an EOF and input terminates. We also cannot open the stdin in binary mode since it is already open. FIX: use a <tt><bf>-f</bf></tt> option to read in from a file, otherwise from <tt><bf> stdin</tt></bf> .
+<item> I have not been able to cleanly compile e85 under Solaris using gcc. I get errors in <tt>va_args</tt> in <tt>eprintf.c</tt>. So there is a define in makefile named SOL_DEFINES. Set it to <bf>__SOLARIS__</bf> and compile (remember to remove the <bf>__LINUX__</bf> define too). Everything else compiled cleanly. I think this is a problem with my gcc installation and everyone else should be able to make e85 easily. I'm working on it though.
+</itemize>
+
+<sect1>Details<label id="details"></sect1>
+The program is divided into several parts:
+<itemize>
+<item><tt><bf> emul.c</bf></tt>: the main module. Initializes stuff, reads in the data, executes it, de-initializes stuff and exits. It has a <tt><bf> task85</bf></tt>  struct which contains full context for one 8085 processor. This way we can have more than one processor at the same time and switch between them or even have SMP(pretty far-fetched). Various functions are:
+	<itemize>
+	<item><tt><bf>inittask()</bf></tt> : sets up memory for a task. sets all registers to zero and all the opcode handles to <tt>def_handle()</tt> by default.
+	<item><tt><bf>buildtask()</bf></tt>: reads in the data. calls <tt>buildhandle()</tt>.
+        <item> <tt><bf>buildhandle()</bf></tt>: sets the tasks' opcode handlers to point to correct opcode handlers. All the code here is generated by a python script(<tt><bf>gencode.py</bf></tt>) and shouldn't be really edited by hand, the script should be changed instead.
+	<item><tt><bf>runtask()</bf></tt>: runs the task by calling the appropriate handler for each opcode. Stops when a null opcode is found ("<tt>nop</tt>" instruction).
+	<item><tt><bf>printhandle()</bf></tt>: print all the opcode handler's address for a task
+	<item><tt><bf>printtask()</bf></tt>: prints all the registers for a task.
+	<item><tt><bf>def_handle()</bf></tt>: prints a message for a unsupported opcode. Prevents core dumps <tt>;-)</tt>
+	</itemize>
+
+<item><tt><bf>doops.c</bf></tt>: actually contains the bare bones code for all the opcodes handlers. it knows nothing about tasks and such but just uses the passed pointers. Thus we implement all MOVs as one generic <tt>doMOV()</tt> that takes two pointers and moves one to the other. This allows us to write less code which is easy to maintain and each handler only gets written once. All opcodes are handled this way except some specialized ones. 
+   
+<item><tt><bf>opmap.c</bf></tt>: contains the code that maps the various combinations of MOVs etc to generic functions in <tt>doops.c</tt>. I think this is one the most important part of the emulator, it took a long time to get this implementation right. It is generated by python script <tt>gencode.py</tt>. 
+
+<item><tt><bf>gencode.py</bf></tt>: the python script that generates the <tt>buildhandle()</tt> and <tt>opmap.c</tt> code. Really the most significant piece of the emulator. Here is where most of my hard work lies. If new opcodes are to be added they are added here and corresponding generic functions written in <tt>doops.c</tt>. Just rerun <tt>gencode.py</tt> with -d for declarations for <tt>handleop.c</tt> and with -c for code for <tt>opmap.c</tt>.
+
+<item><tt><bf>opfuncdecl.h</tt></bf>: contains all the declarations for <tt>doops.c</tt> generated automatically by cproto. But first needs to be passed through C preprocessor as <tt>cproto</tt> balks on typedefs and defines.
+
+<item><tt><bf>instrtable.c</bf></tt>: contains the ophandler pointer and name of each opcode as an array of struct <tt>instr85</tt>. Fill this in after you write a ophandler.
+<item><tt><bf>top.h</bf></tt>: at the top! contains all the <tt>task85</tt> struct definitions, compile time constants for user start and end location, task memory size and some useful defines. Really should be #included everywhere.
+
+<item><tt><bf>eprintf.c</bf></tt>: This and friends are from k&amp;p tpop(`the practice of programming'). It is quite useful and i'm grateful to the authors. Allows to print errors and warnings in printf format, making life easier.
+</itemize>
+
+<sect1>Build Instructions<label id="build"></sect1>
+There is a standard makefile included. Just make sure everything is in one directory. If you're on ganga enable the define <bf>__SOLARIS__</bf> in the makefile  and disable <bf>__LINUX__</bf> define. Change CC &amp; CFLAGS in makefile for your compiler and type make. It should build cleanly. If not, try to figure out what went wrong and mail me the fix (ok you could also contact me ;).
+ 
+<sect1>Todo<label id="todo"></sect1>
+<itemize>
+<item>a assembler for 8085 assembly language. I'm working on it right now in python and could be done soon. If you want to write one too, by all means do so - just contact me so if I like your idea we both can work on it (pending permission from you, ofcourse :-).
+<item>a graphical front end in python or tcl/tk (or any other scripting language). I'll try to do this after i hack tkinter.
+<item>allow to change user code start and end locations at run time rather than at compile time.
+<item>allow for single stepping and debugging. Going to take one major rehash for the user interface code (do use readline library).
+<item>if you have the time/inclination the opcodes can be executed as threaded jumps to opcode handlers rather than through a table look up. ie we will semi-compile the opcodes and store the handler's address in sequential order to directly jump to it and execute. Will be FAST.
+</itemize>
+<sect1>Credits / Thanks<label id="credits"></sect1> 
+<itemize>
+<item>All the people who made GNU/Linux such a wonderful environment.
+<item>Arun Suresh for giving me the idea that this project is possible.
+<item>Manish Verma for being the first user.
+<item>Subin Philip for taking an active interest.
+</itemize>
+
+<sect1>Copying<label id="copying"></sect1>
+See the file <htmlurl url="http://cnn/~aaditya/COPYING" name="COPYING "> included with this package.
+
+<sect1>Maintainers<label id="maintainers"></sect1>
+aaditya sood
+
+<sect1>Author Info<label id="author"></sect1>
+aaditya sood: I'm doing my b.tech. in electronics and communications engg. at REC Calicut, Kerala, India.
+You can reach me at <bf><htmlurl url="mailto:aaditya@users.sourceforge.net" name="aaditya@users.sourceforge.net "></bf>  or <bf><htmlurl url="mailto:soodaaditya@yahoo.co.in" name="soodaaditya@yahoo.co.in"></bf>.  
+
+</article>
