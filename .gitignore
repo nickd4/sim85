@@ -1,0 +1,5 @@
+*.o
+/GEN
+/OP
+/gmon.out
+/sim85
